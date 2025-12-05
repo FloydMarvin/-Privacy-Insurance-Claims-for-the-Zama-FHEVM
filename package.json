@@ -1,0 +1,23 @@
+{
+  "name": "privacy-insurance-claims",
+  "version": "1.0.0",
+  "description": "Secure Medical Insurance Platform with Encrypted Data Protection",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -c-1 --cors",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "insurance",
+    "privacy",
+    "healthcare",
+    "blockchain",
+    "fhe",
+    "encryption"
+  ],
+  "author": "Privacy Insurance Platform",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
