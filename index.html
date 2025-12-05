@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Insurance Claims - Secure Medical Insurance Platform</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.9/ethers.umd.min.js"></script>
+    <script>
+        // Fallback if ethers doesn't load from CDN
+        if (typeof ethers === 'undefined') {
+            document.write('<script src="https://unpkg.com/ethers@5.6.9/dist/ethers.umd.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(120, 255, 214, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 107, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(78, 205, 196, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .wallet-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .wallet-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: white;
+        }
+
+        .wallet-info strong {
+            color: #78ffd6;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #78ffd6 0%, #4ecdc4 100%);
+            color: #0f2027;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(78, 205, 196, 0.6);
+            background: linear-gradient(135deg, #4ecdc4 0%, #78ffd6 100%);
+        }
+
+        .connect-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .address {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .section:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(120, 255, 214, 0.2);
+            border: 1px solid rgba(120, 255, 214, 0.4);
+        }
+
+        .section h2 {
+            color: #78ffd6;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid transparent;
+            border-image: linear-gradient(90deg, #78ffd6 0%, #4ecdc4 100%);
+            border-image-slice: 1;
+            padding-bottom: 10px;
+            text-shadow: 0 0 20px rgba(120, 255, 214, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #78ffd6;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid rgba(120, 255, 214, 0.3);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #78ffd6;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(120, 255, 214, 0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #78ffd6 0%, #4ecdc4 100%);
+            color: #0f2027;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(78, 205, 196, 0.6);
+            background: linear-gradient(135deg, #4ecdc4 0%, #78ffd6 100%);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(120, 255, 214, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(120, 255, 214, 0.2);
+            border-color: #78ffd6;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-submitted { background: #ffc107; color: #212529; }
+        .status-underreview { background: #17a2b8; color: white; }
+        .status-approved { background: #28a745; color: white; }
+        .status-rejected { background: #dc3545; color: white; }
+        .status-paid { background: #6f42c1; color: white; }
+
+        .claims-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .claim-item {
+            border: 1px solid rgba(120, 255, 214, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .claim-item:hover {
+            background: rgba(120, 255, 214, 0.1);
+            border-color: #78ffd6;
+        }
+
+        .claim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .claim-id {
+            font-weight: bold;
+            color: #78ffd6;
+        }
+
+        .claim-details {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .claim-details strong {
+            color: #78ffd6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .info-box {
+            background: rgba(120, 255, 214, 0.1);
+            border: 2px solid rgba(120, 255, 214, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #78ffd6;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .info-box .address {
+            background: rgba(255, 255, 255, 0.1);
+            color: #78ffd6;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #78ffd6 0%, #4ecdc4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(120, 255, 214, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .wallet-info {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Privacy Insurance Claims</h1>
+            <p>Secure Medical Insurance Platform with Encrypted Data Protection</p>
+        </div>
+
+        <div class="wallet-section">
+            <div class="wallet-info">
+                <div>
+                    <strong>Wallet Status:</strong>
+                    <span id="walletStatus">Not Connected</span>
+                </div>
+                <div>
+                    <span id="walletAddress" class="address" style="display: none;"></span>
+                </div>
+                <button id="connectWallet" class="connect-btn">Connect MetaMask</button>
+            </div>
+        </div>
+
+        <div id="contractInfo" class="info-box" style="display: none;">
+            <h3>📋 Contract Information</h3>
+            <p><strong>Contract Address:</strong> <span id="contractAddress" class="address"></span></p>
+            <p><strong>Network:</strong> Sepolia Test Network</p>
+            <p><strong>Insurance Company:</strong> <span id="insuranceCompany" class="address"></span></p>
+        </div>
+
+        <div class="main-content">
+            <!-- Policy Management Section -->
+            <div class="section">
+                <h2>🛡️ Insurance Policy</h2>
+
+                <div id="policyStatus" class="loading">Loading policy status...</div>
+
+                <div id="createPolicyForm" style="display: none;">
+                    <div class="form-group">
+                        <label for="monthlyPremium">Monthly Premium (USD)</label>
+                        <input type="number" id="monthlyPremium" placeholder="Enter monthly premium amount" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coverageLimit">Coverage Limit (USD)</label>
+                        <input type="number" id="coverageLimit" placeholder="Enter maximum coverage amount" min="1">
+                    </div>
+
+                    <button onclick="createPolicy()" class="btn">Create Insurance Policy</button>
+                </div>
+
+                <div id="policyInfo" style="display: none;">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="policyActive">-</div>
+                            <div class="stat-label">Policy Status</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="policyStartDate">-</div>
+                            <div class="stat-label">Start Date</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalUserClaims">-</div>
+                            <div class="stat-label">Total Claims</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claim Submission Section -->
+            <div class="section">
+                <h2>📝 Submit Insurance Claim</h2>
+
+                <div id="claimForm">
+                    <div class="form-group">
+                        <label for="claimAmount">Claim Amount (USD)</label>
+                        <input type="number" id="claimAmount" placeholder="Enter claim amount" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="diagnosisCode">Medical Diagnosis Code</label>
+                        <input type="number" id="diagnosisCode" placeholder="Enter diagnosis code" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="treatmentCost">Treatment Cost (USD)</label>
+                        <input type="number" id="treatmentCost" placeholder="Enter treatment cost" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="patientAge">Patient Age</label>
+                        <input type="number" id="patientAge" placeholder="Enter patient age" min="1" max="120">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="severityLevel">Medical Severity Level (1-10)</label>
+                        <select id="severityLevel">
+                            <option value="">Select severity level</option>
+                            <option value="1">1 - Minor</option>
+                            <option value="2">2 - Low</option>
+                            <option value="3">3 - Mild</option>
+                            <option value="4">4 - Moderate</option>
+                            <option value="5">5 - Medium</option>
+                            <option value="6">6 - Significant</option>
+                            <option value="7">7 - High</option>
+                            <option value="8">8 - Severe</option>
+                            <option value="9">9 - Critical</option>
+                            <option value="10">10 - Emergency</option>
+                        </select>
+                    </div>
+
+                    <button onclick="submitClaim()" class="btn">Submit Encrypted Claim</button>
+                </div>
+            </div>
+
+            <!-- Claims Management Section -->
+            <div class="section">
+                <h2>📊 Claims Management</h2>
+
+                <div class="form-group">
+                    <label for="claimId">Claim ID for Review</label>
+                    <input type="number" id="claimId" placeholder="Enter claim ID" min="1">
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="reviewClaim()" class="btn btn-secondary" style="flex: 1;">Review Claim</button>
+                    <button onclick="approveClaim()" class="btn" style="flex: 1;">Approve Claim</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <button onclick="processPayment()" class="btn" style="flex: 1;">Process Payment</button>
+                    <button onclick="getClaimInfo()" class="btn btn-secondary" style="flex: 1;">Get Claim Info</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="rejectReason">Rejection Reason</label>
+                    <textarea id="rejectReason" placeholder="Enter reason for rejection..." rows="3"></textarea>
+                    <button onclick="rejectClaim()" class="btn btn-danger">Reject Claim</button>
+                </div>
+            </div>
+
+            <!-- Reviewer Management Section -->
+            <div class="section">
+                <h2>👨‍⚕️ Reviewer Management</h2>
+
+                <div class="form-group">
+                    <label for="reviewerAddress">Reviewer Address</label>
+                    <input type="text" id="reviewerAddress" placeholder="0x..." maxlength="42">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="addReviewer()" class="btn" style="flex: 1;">Add Reviewer</button>
+                    <button onclick="removeReviewer()" class="btn btn-danger" style="flex: 1;">Remove Reviewer</button>
+                </div>
+
+                <button onclick="checkReviewerStatus()" class="btn btn-secondary">Check Reviewer Status</button>
+            </div>
+
+            <!-- Claims History Section -->
+            <div class="section">
+                <h2>📋 Claims History</h2>
+
+                <button onclick="loadUserClaims()" class="btn btn-secondary">Load My Claims</button>
+
+                <div id="claimsList" class="claims-list">
+                    <div class="loading">Click "Load My Claims" to view your claim history</div>
+                </div>
+            </div>
+
+            <!-- System Statistics Section -->
+            <div class="section">
+                <h2>📈 System Statistics</h2>
+
+                <button onclick="loadSystemStats()" class="btn btn-secondary">Refresh Statistics</button>
+
+                <div id="systemStats" class="stats-grid" style="margin-top: 20px;">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalSystemClaims">-</div>
+                        <div class="stat-label">Total Claims</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="nextClaimId">-</div>
+                        <div class="stat-label">Next Claim ID</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
