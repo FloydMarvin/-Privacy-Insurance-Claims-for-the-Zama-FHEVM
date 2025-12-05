@@ -6,6 +6,10 @@
 
 This project demonstrates how to build a secure, privacy-preserving medical insurance claims system using Zama's FHEVM (Fully Homomorphic Encryption Virtual Machine). The system allows insurance companies, policy holders, and medical reviewers to process insurance claims while keeping sensitive medical and financial data completely encrypted on-chain.
 
+Live Video :https://streamable.com/9ow67d  PrivacyInsuranceClaims.mp4
+
+Live Demo ：https://privacy-insurance-claims-for-the-za.vercel.app/
+
 ### What Makes This Example Special?
 
 - **Complete Privacy**: Medical diagnoses, treatment costs, patient ages, and claim amounts remain encrypted throughout the entire claims process
